@@ -1,68 +1,79 @@
 # Green Steps Run
 
-A student charity run where every kilometre plants a tree. Runners log kilometres, sponsors pledge kroner per kilometre, and 50 kr raised equals 1 tree. Built for the Vibe Coding assignment with generative AI.
+A prototype charity run app for student associations. Runners log kilometres, sponsors make pledges per kilometre, and the app estimates how many trees those pledges could fund at 50 NOK per tree. It was built with generative AI for a Vibe Coding assignment.
 
-**Demo:** VibeOff link : https://vibeoff.ai/build/a-student-charity-run-app-where-every-kilometre-a-runner-52e4d821
+**VibeOff showcase and video:** [View Green Steps Run on VibeOff](https://vibeoff.ai/build/a-student-charity-run-app-where-every-kilometre-a-runner-52e4d821)
 
-> **Note on origin:**  AI helped reconstructed this codebase: Claude Code, Gemini, Chatgpt.
+> **AI use:** The first version was built with an AI app builder. I then used AI to review and improve the code.
 
 ## Features
-- Event dashboard, leaderboard and faculty team pages (rank, rival gap)
-- Organiser-PIN-protected run logging, checked on the server (demo PIN `1234`; set `ORGANIZER_PIN`)
-- Printable runner bibs with QR codes. Scanning one opens the run form with the bib prefilled.
-- Sponsor pledges (NOK per km, optional cap), a thank-you page that updates as the runner runs, and a downloadable sponsor story PNG
-- Milestone story cards (PNG) when a runner reaches 10, 25 or 50 trees
-- Weekly recap (last 7 days or this week) with top runner and fastest-growing faculty
-- Seeded demo data
+
+- Event dashboard with a runner leaderboard and faculty team pages
+- Run logging protected by an organiser PIN checked by the backend
+- Printable runner bibs with QR codes that open the run form with the bib number filled in
+- Sponsor pledges per kilometre, with an optional maximum amount
+- A thank-you page that updates as kilometres are logged
+- Downloadable sponsor and milestone story cards
+- Weekly recap with distance and estimated impact
+- Seed data for trying the prototype
 
 ## Run locally
+
 Requires Python 3.10+ and Node.js 18+.
 
 ```bash
 # Backend
 cd backend
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python seed.py
-ORGANIZER_PIN=your-private-pin uvicorn app:app --reload --port 8001   # demo default is 1234
+ORGANIZER_PIN=your-private-pin uvicorn app:app --reload --port 8001
 
-# Frontend (new terminal)
+# Frontend, in a second terminal
 cd frontend
 npm install
-npm run dev        # open http://localhost:5173
+npm run dev
 ```
 
-API docs: http://localhost:8001/docs. The frontend uses `VITE_API_URL` if set, otherwise `http://localhost:8001/api`. See `frontend/.env.example` for configuration. For printed QR bibs used at a real event, set `VITE_PUBLIC_APP_URL` to the deployed frontend URL and rebuild the frontend. QR codes generated with a localhost URL will only work on the same computer.
+Open the frontend at http://localhost:5173. The API documentation is at http://localhost:8001/docs.
+
+The frontend uses `VITE_API_URL` if set; otherwise it connects to `http://localhost:8001/api`. See `frontend/.env.example` for configuration. QR codes use the current browser address unless `VITE_PUBLIC_APP_URL` is set. For a deployed app, set that variable to the public frontend URL and rebuild the frontend.
+
+**Demo data warning:** `python seed.py` resets the database and replaces its contents with sample data. Use it only when you want to reset the demo.
 
 ## How AI was used
 
-the first version was built with an AI app builder. The code in this repository was then reviewed by a second AI, which found six bugs by reading the code (the QR link not opening the run form, a dead thank-you link, a weekly recap using different tree and money rules from the rest of the app, a milestone pop-up that repeated after every run, a pledge form that failed by default for the second event, and a sponsor card that counted kilometres from other events). Five were fixed and the dependencies were pinned.
+I used generative AI to build the first version, review the code, and make improvements. An AI code review identified six issues, including QR links, thank-you links, milestone behaviour, event selection, and calculations. Five were fixed, and the dependencies were pinned. The review also helped identify limitations in the recap calculations, which are listed below.
 
 ## Testing
-Tick these off after running the app yourself:
+
+The frontend production build completed successfully. The checklist below is for additional manual checks; mark an item complete only after running it yourself.
+
 - [ ] `python seed.py` runs and the backend starts
-- [ ] A wrong PIN is rejected, the right PIN records the run
-- [ ] A run for an unknown bib shows "Runner bib not found"
-- [ ] Opening `/?bib=1003` shows the "Log a run" form with bib 1003 filled in
-- [ ] Creating a pledge shows the thank-you page, and `/thanks/<id>` reopens it after a reload
-- [ ] Pledging for event 2 works without clearing the runner field
-- [ ] The milestone card appears only when a new milestone (10, 25, 50) is reached
-- [ ] The weekly recap trees and kroner agree with the leaderboard
-- [ ] Print bibs shows QR codes and prints two per row
-- [ ] On a phone, scan a printed QR code and confirm it opens the deployed app with the correct bib prefilled
+- [ ] A wrong PIN is rejected, and the correct PIN records a run
+- [ ] An unknown bib number shows an error
+- [ ] Opening `/?bib=1003` opens the run form with bib 1003 filled in
+- [ ] Creating a pledge opens the thank-you page, and `/thanks/<id>` works after reloading
+- [ ] Pledging for the second event works
+- [ ] A milestone card appears when a runner reaches a new 10, 25, or 50 tree milestone
+- [ ] Print bibs shows QR codes and prints correctly
+- [ ] A printed QR code opens the deployed app with the correct bib number
 
 ## Limitations and next steps
-- An event-wide pledge's maximum is applied per runner, not as a total across the event.
-- The recap counts every pledge, including ones made after the run.
-- The PIN is one shared organiser PIN, with no per-runner login and no rate limiting.
-- No real payments (a Vipps link per sponsor would be the next step), and distances are typed in, not imported from Strava or a watch.
-- SQLite is fine for a demo; a hosted database would be needed for a live event.
+
+- This is a prototype. It does not collect payments or verify logged distances.
+- The app estimates tree impact from pledges; it does not confirm that money was collected or trees were planted.
+- An event-wide pledge's maximum is applied separately to each runner, rather than once across the whole event.
+- The weekly recap includes pledges made after a run and does not apply pledge maximums. Its totals may therefore differ from the leaderboard.
+- Run logging uses one shared organiser PIN. There are no individual accounts or rate limits.
+- Distances are entered manually; they are not imported from Strava or a running watch.
+- SQLite is suitable for this demo. A live event would need a hosted database and additional safeguards.
 
 ## Data and privacy
-All names are made up. No keys or personal data are stored. Never commit a real PIN or `.env` file.
+
+The included runner names are made up. Do not use real personal data or commit passwords, PINs, API keys, or `.env` files.
 
 ## Licence
-MIT, see `LICENSE`. Replace `[Your Name]` with your name.
 
-
-
+MIT. See `LICENSE`.
